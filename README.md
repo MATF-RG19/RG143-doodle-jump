@@ -1,2 +1,2 @@
 # RG143-doodle-jump
-doodle-jump
+Kopija popularne doodle jump igre sa pocetka decenije.
