@@ -4,7 +4,6 @@
 
 #define TIMER_ID 0
 #define TIMER_INTERVAL 10
-#define velicina 0.1
 #define jump_limit 0.2
 #define levo 1
 #define gore 2
@@ -15,8 +14,6 @@
 static int jump_up = 0;
 static int jump_down = 0;
 
-static float xc=velicina/2;
-static float yc=velicina+0.05;
 
 static void on_keyboard(unsigned char key,int x,int y);
 static void on_timer(int value);
