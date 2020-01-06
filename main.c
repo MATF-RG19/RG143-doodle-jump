@@ -19,6 +19,7 @@ static void on_keyboard(unsigned char key,int x,int y);
 static void on_timer(int value);
 static void on_display(void);
 static void on_reshape(int height, int width);
+static void on_release(unsigned char key,int x,int y);
 static void skok(int value);
 
 static void igrac();
@@ -26,8 +27,12 @@ static void teren();
 
 int smer;
 static float x_curr = 5;
-static float z_curr = 3;
+static float z_curr = 2 ;
 static float y_curr = 2;
+
+GLdouble mat2=4;
+GLdouble mat3=2;
+static int pomeranje[2]={0,0}; 
 
 int main(int argc, char** argv){
 
@@ -72,7 +77,7 @@ static void on_display(void){
     glLoadIdentity();
     
     
-    gluLookAt(10,4,4,0,0,2,0,1,0);
+    gluLookAt(10,mat2,2,0,mat3,2,0,1,0);
 
     //iscrtavanje axisa radi lakse orijentacije u prostoru
     glColor3f(1,0,0);
@@ -101,6 +106,8 @@ static void on_display(void){
     teren();   
     igrac();
 
+    // gluLookAt(10,mat2,4,0,0,2,0,1,0);
+
     glutSwapBuffers();
 }
 
@@ -124,32 +131,42 @@ static void on_keyboard(unsigned char key, int x, int y){
             exit(0);
             break;
 
-        case 'w':
-            smer=gore;
-            glutTimerFunc(TIMER_INTERVAL,on_timer,TIMER_ID);
-            break;
+
         case 'a':
-            smer=levo;
+            pomeranje[0]=1;
             glutTimerFunc(TIMER_INTERVAL,on_timer,TIMER_ID);
             break;
         case 'd':
-            smer=desno;
-            glutTimerFunc(TIMER_INTERVAL,on_timer,TIMER_ID);
-            break;
-        case 's':
-            smer=dole;
+            pomeranje[1]=1;
             glutTimerFunc(TIMER_INTERVAL,on_timer,TIMER_ID);
             break;
 
         case ' ':
             if(!jump_up) 
                 jump_up = 1;
-                // glutTimerFunc(TIMER_INTERVAL,on_timer,TIMER_ID);
+                glutTimerFunc(TIMER_INTERVAL,on_timer,TIMER_ID);
             break;    
         
         default:
             break;
         }
+}
+
+static void on_release(unsigned char key, int x, int y){
+    
+    switch (key){
+    case 'a':
+        pomeranje[0] -= 1;
+        glutPostRedisplay();
+        glutTimerFunc(TIMER_INTERVAL,on_timer,TIMER_ID);
+        break;
+    case 'd':
+        pomeranje[1] -= 1;
+        glutPostRedisplay();
+        glutTimerFunc(TIMER_INTERVAL,on_timer,TIMER_ID);
+        break;
+        
+    }
 }
 
 // Funkcija koja iscrtava donju ivicu terena
@@ -160,29 +177,27 @@ static void teren(){
     glPushMatrix();
         glTranslatef(ivica,-ivica,ivica/2);
         glScalef(1,1,0.4); 
-        glutSolidCube(ivica*2);
-       
+        glutSolidCube(ivica*2);       
     glPopMatrix();
 }
 
 
 
 static void on_timer(int value){
+    if(value!=TIMER_ID){
+        return;
+    }
 
    glutPostRedisplay();
-   switch (smer){
-       case levo:
-            z_curr+=pomeraj;
-            break;
-       case desno:
-            z_curr-=pomeraj;
-            break;
-        case gore:
-            x_curr-=pomeraj;
-            break;
-        case dole:
-            x_curr+=pomeraj;
-   };
+   if(pomeranje[1])
+       z_curr-=pomeraj;
+   
+   if(pomeranje[0])
+       z_curr+=pomeraj;
+
+//    while (jump_up>0){
+//        glutTimerFunc(20,skok,1);
+//    }
    
    glPushMatrix();
         glTranslatef(x_curr,y_curr,z_curr);
@@ -194,5 +209,14 @@ static void on_timer(int value){
 }
 
 static void skok(int value){
+            if(value!=1){
+                return;
+            }
+
+            mat2+=pomeraj;
+            mat3+=pomeraj;
+            y_curr+=pomeraj;
+            jump_up-=pomeraj;
+            glutPostRedisplay();
 
 }
