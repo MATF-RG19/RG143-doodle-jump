@@ -2,7 +2,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "image.h"
 
+
+// Imena fajlova sa teksturama
+#define FILENAME0 "oblaci.bmp"
+
+// Identifikatori tekstura
+static GLuint names[1];
+
+
+// Makroi za boje
+
+#define RED (glColor3f(1, 0, 0))
+#define CITY (glColor3f(1, 0, 1))
+#define YELLOW (glColor3f(1, 1, 0))
+#define LIME (glColor3f(0, 1 , 0))
+#define AQUA (glColor3f(0, 1 , 1))
+#define PINK (glColor3f(1, 0.08 , 0.588))
+#define LIGHT (glColor3f(1, 0.9 , 1))
+#define SAND (glColor3f(0.97, 0.55 , 0.38))
+#define BLUE (glColor3f(0, 0 , 0.82))
 
 // Makroi za rad funkcija
 
@@ -20,6 +40,9 @@
 
 static time_t t;
 
+// Promenljiva koja meri skor
+static int score = 0;
+
 // Promenljive koje definisu da li je igrac u skoku/padu
 
 static int jump_up = 0;
@@ -30,11 +53,11 @@ static int niz[2] = {0,0};
 
 // promenljive koje definisu prepreke
 // TODO - dodati jos prepreka
-static float prep[50];
-static float y_prep[50];
+static float prep[1000];
+static float y_prep[1000];
 
 // Promenljiva koja definise maksimalni dohvat pri skoku
-static int dohvat = 48;
+static int dohvat = 998;
 
 // funkcije za rad sa GLUT bibliotekom
 
@@ -68,6 +91,46 @@ int main(int argc, char** argv){
     glutInitWindowSize(480, 854);
     glutInitWindowPosition(100, 100);
     glutCreateWindow("Doodle jump");
+
+    //    /*Objekat koji predstavlja teskturu ucitanu iz fajla*/
+    //      Image * image;
+
+    //      /*Ukljucuju se teksture.*/
+    //      glEnable(GL_TEXTURE_2D);
+
+    //      glTexEnvf(GL_TEXTURE_ENV,
+    //           GL_TEXTURE_ENV_MODE,
+    //           GL_REPLACE);
+
+    //       /*
+    //        *Inicijalizuje se objekat koji ce sadrzati teksture ucitane iz fajla*/
+    //      image = image_init(0, 0);
+
+    //      /*Generisu se identifikatori tekstura*/
+    //      glGenTextures(4, names);
+
+    //      /* Kreira se prva tekstura. */
+    //      image_read(image, FILENAME0);
+
+    //     glBindTexture(GL_TEXTURE_2D, names[0]);
+    //      glTexParameteri(GL_TEXTURE_2D,
+    //                 GL_TEXTURE_WRAP_S, GL_REPEAT);
+    //      glTexParameteri(GL_TEXTURE_2D,
+    //                 GL_TEXTURE_WRAP_T, GL_REPEAT);
+    //      glTexParameteri(GL_TEXTURE_2D,
+    //                 GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //      glTexParameteri(GL_TEXTURE_2D,
+    //                 GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+    //              image->width, image->height, 0,
+    //              GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+
+    //              /* Iskljucujemo aktivnu teksturu */
+    //       glBindTexture(GL_TEXTURE_2D, 0);
+
+    //      /* Unistava se objekat za citanje tekstura iz fajla. */
+    //       image_done(image);
+
 
     glutDisplayFunc(on_display);
     glutKeyboardFunc(on_keyboard);
@@ -108,17 +171,17 @@ static void on_display(void){
     gluLookAt(10,y_curr,2,0,y_curr,2,0,1,0);
     
     //iscrtavanje axisa radi lakse orijentacije u prostoru
-    glColor3f(1,0,0);
+    RED;
     glBegin(GL_LINES);
         glVertex3f(0,0,0);
         glVertex3f(100,0,0);
     glEnd();
-        glColor3f(0,0,1);
+    AQUA;
     glBegin(GL_LINES);
         glVertex3f(0,0,-2);
         glVertex3f(0,0,6);
     glEnd();
-    glColor3f(0,1,0);
+    LIME;
     glBegin(GL_LINES);
         glVertex3f(0,0,0);
         glVertex3f(0,100,0);
@@ -228,7 +291,7 @@ static void on_timer(int value){
 
 
     if(jump_down)
-        for(int i=48;i>2;i--){
+        for(int i=999;i>2;i--){
             if (y_curr-0.15>=y_prep[i]){
                 dohvat = i;
                 break;
@@ -237,7 +300,7 @@ static void on_timer(int value){
         //printf("ovo je dohvat:%d, a jumpd: %d, a y:%f\n",dohvat, jump_down,y_curr);
         
         if ((z_curr+0.15<prep[dohvat] || z_curr-0.15>prep[dohvat]+0.5) 
-            && (jump_down==0 && jump_up==0) && dohvat!=48){
+            && (jump_down==0 && jump_up==0) && dohvat!=999){
                 jump_down = 1;
                 //printf("usao0: dohvat:%d jumpd:%d jumpup:%d\n",dohvat, jump_down,jump_up);
                 glutTimerFunc(TIMER_INTERVAL,skok,TIMER_ID);
@@ -259,7 +322,7 @@ static void on_timer(int value){
 static void popuni(){
     srand((unsigned) time(&t));
     
-    for (int i=0;i<50;i++){
+    for (int i=0;i<1000;i++){
         float x = (float)rand()/(float)(RAND_MAX/4);
             prep[i]=x;
             y_prep[i]=i/4.0;
@@ -270,7 +333,7 @@ static void popuni(){
 
 static void prepreke(){
     glLineWidth(4);
-    glColor3f(1,0,0);
+    RED;
     
     // Pocetna linija
     glBegin(GL_LINES);
@@ -278,7 +341,11 @@ static void prepreke(){
         glVertex3f(4,y_prep[2],prep[2]+30);
     glEnd();
     
-    for (int i=3;i<50;i++){
+    for (int i=3;i<1000;i++){
+        if(i==100)
+            AQUA;
+        if(i==200)
+            CITY;
     glBegin(GL_LINES);
         glVertex3f(4,y_prep[i],prep[i]);
         glVertex3f(4,y_prep[i],prep[i]+0.5);
@@ -287,7 +354,7 @@ static void prepreke(){
 
 static void skok(int value){
     if(jump_up == 1){
-        dy += 0.005;
+        dy += 0.004;
         y_curr += dy;
 
         if (dy>=0.1){
@@ -296,17 +363,19 @@ static void skok(int value){
             jump_down = 1;
         }
 
+        if(y_curr>score)
+            score = y_curr;
     }
 
-    for(int i=48;i>=0;i--){
-            if (y_curr-0.15>=y_prep[i] && y_curr+0.15<y_prep[i+1]){
-                dohvat = i;
-                break;}
-    }
+    // for(int i=48;i>=0;i--){
+    //         if (y_curr-0.15>=y_prep[i] && y_curr+0.15<y_prep[i+1]){
+    //             dohvat = i;
+    //             break;}
+    // }
     
     if (jump_down == 1){
         if (dy<0.1)
-            dy += 0.005;
+            dy += 0.002;
 
         y_curr -= dy;
         
@@ -327,6 +396,8 @@ static void skok(int value){
         }
 
     }
+
+    
 
     glPushMatrix();
         glTranslatef(x_curr,y_curr,z_curr);
