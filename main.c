@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include "image.h"
 
 
@@ -41,7 +42,7 @@ static GLuint names[1];
 static time_t t;
 
 // Promenljiva koja meri skor
-static int score = 0;
+static float score = 0;
 
 // Promenljive koje definisu da li je igrac u skoku/padu
 
@@ -92,44 +93,44 @@ int main(int argc, char** argv){
     glutInitWindowPosition(100, 100);
     glutCreateWindow("Doodle jump");
 
-    //    /*Objekat koji predstavlja teskturu ucitanu iz fajla*/
-    //      Image * image;
+       /*Objekat koji predstavlja teskturu ucitanu iz fajla*/
+         Image * image;
 
-    //      /*Ukljucuju se teksture.*/
-    //      glEnable(GL_TEXTURE_2D);
+         /*Ukljucuju se teksture.*/
+         glEnable(GL_TEXTURE_2D);
 
-    //      glTexEnvf(GL_TEXTURE_ENV,
-    //           GL_TEXTURE_ENV_MODE,
-    //           GL_REPLACE);
+         glTexEnvf(GL_TEXTURE_ENV,
+              GL_TEXTURE_ENV_MODE,
+              GL_REPLACE);
 
-    //       /*
-    //        *Inicijalizuje se objekat koji ce sadrzati teksture ucitane iz fajla*/
-    //      image = image_init(0, 0);
+          /*
+           *Inicijalizuje se objekat koji ce sadrzati teksture ucitane iz fajla*/
+         image = image_init(0, 0);
 
-    //      /*Generisu se identifikatori tekstura*/
-    //      glGenTextures(4, names);
+         /*Generisu se identifikatori tekstura*/
+         glGenTextures(4, names);
 
-    //      /* Kreira se prva tekstura. */
-    //      image_read(image, FILENAME0);
+         /* Kreira se prva tekstura. */
+         image_read(image, FILENAME0);
 
-    //     glBindTexture(GL_TEXTURE_2D, names[0]);
-    //      glTexParameteri(GL_TEXTURE_2D,
-    //                 GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //      glTexParameteri(GL_TEXTURE_2D,
-    //                 GL_TEXTURE_WRAP_T, GL_REPEAT);
-    //      glTexParameteri(GL_TEXTURE_2D,
-    //                 GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //      glTexParameteri(GL_TEXTURE_2D,
-    //                 GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-    //              image->width, image->height, 0,
-    //              GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+        glBindTexture(GL_TEXTURE_2D, names[0]);
+         glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_REPEAT);
+         glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, GL_REPEAT);
+         glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
 
-    //              /* Iskljucujemo aktivnu teksturu */
-    //       glBindTexture(GL_TEXTURE_2D, 0);
+                 /* Iskljucujemo aktivnu teksturu */
+          glBindTexture(GL_TEXTURE_2D, 0);
 
-    //      /* Unistava se objekat za citanje tekstura iz fajla. */
-    //       image_done(image);
+         /* Unistava se objekat za citanje tekstura iz fajla. */
+          image_done(image);
 
 
     glutDisplayFunc(on_display);
@@ -168,7 +169,50 @@ static void on_display(void){
     glLoadIdentity();
 
 
-    gluLookAt(10,y_curr,2,0,y_curr,2,0,1,0);
+    gluLookAt(10,y_curr,2,0,score,2,0,1,0);
+
+    glPushMatrix();
+        glColor3f(1,1,1);
+        glRasterPos3f(0,  y_curr+5, 5);
+    
+        char score_display[50] = "SCORE: ";
+        char score_value[50];
+    
+        sprintf(score_value, " %.f ", score*10);
+        strcat(score_display, score_value);
+        int len = (int)strlen(score_display);
+        int i;
+        for (i = 0; i < len; i++){
+            glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, score_display[i]);
+        }
+    glPopMatrix();
+
+    glPushMatrix();
+
+        glScalef(1,3,1);
+        glRotatef(270,1,0,0);
+        glRotatef(90,0,0,1);
+        glTranslatef(0 ,5 , 3);
+  
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, names[0]);
+	
+		glBegin(GL_POLYGON);
+			glTexCoord2f(0, 0);
+			glVertex3f(-10, 0, -5);
+			
+			glTexCoord2f(1, 0);
+			glVertex3f(10, 0, -5);
+			
+			glTexCoord2f(1, 3);
+			glVertex3f(10, 0, 5);
+			
+			glTexCoord2f(0, 3);
+			glVertex3f(-10, 0, 5);
+		glEnd();
+	
+        glBindTexture(GL_TEXTURE_2D, 0);
+    glPopMatrix();
     
     //iscrtavanje axisa radi lakse orijentacije u prostoru
     RED;
@@ -397,7 +441,9 @@ static void skok(int value){
 
     }
 
-    
+    if (score>y_curr+6){
+        exit(EXIT_FAILURE);
+    }
 
     glPushMatrix();
         glTranslatef(x_curr,y_curr,z_curr);
