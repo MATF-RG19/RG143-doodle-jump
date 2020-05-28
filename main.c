@@ -7,14 +7,16 @@
 
 
 // Imena fajlova sa teksturama
-#define FILENAME0 "oblaci.bmp"
+#define FILENAME0 "noc.bmp"
+#define FILENAME1 "tekstura.bmp"
 
 // Identifikatori tekstura
-static GLuint names[1];
+static GLuint names[2];
 
 
 // Makroi za boje
 
+#define NEON (glColor3f(0.5,0.07,1))
 #define RED (glColor3f(1, 0, 0))
 #define CITY (glColor3f(1, 0, 1))
 #define YELLOW (glColor3f(1, 1, 0))
@@ -85,9 +87,16 @@ static float dy = 0.005;
 
 int main(int argc, char** argv){
 
+    GLfloat light_ambient[] = { 0.1, 0.1, 0.1, 1 };
+    GLfloat light_diffuse[] = { 0.5, 0.07, 1, 1 };
+    GLfloat light_specular[] = {0.5, 0.07, 1, 1 };
+
+    GLfloat ambient_coeffs[] = { 0.1, 0.1, 0.1, 1 };
+    GLfloat diffuse_coeffs[] = { 0.8, 0.8, 0.8, 1 };
+    GLfloat specular_coeffs[] = { 0.5, 0.5, 0,5, 1 };
+    GLfloat shininess = 1.3;   
+
     popuni();
-    // for(int i=0;i<50;i++)
-    //     printf("i:%d:%f\n",i,y_prep[i]);
     glutInit(&argc, argv);
     glutInitWindowSize(480, 854);
     glutInitWindowPosition(100, 100);
@@ -115,9 +124,9 @@ int main(int argc, char** argv){
 
         glBindTexture(GL_TEXTURE_2D, names[0]);
          glTexParameteri(GL_TEXTURE_2D,
-                    GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
          glTexParameteri(GL_TEXTURE_2D,
-                    GL_TEXTURE_WRAP_T, GL_REPEAT);
+                    GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
          glTexParameteri(GL_TEXTURE_2D,
                     GL_TEXTURE_MAG_FILTER, GL_LINEAR);
          glTexParameteri(GL_TEXTURE_2D,
@@ -125,6 +134,23 @@ int main(int argc, char** argv){
          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
                  image->width, image->height, 0,
                  GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+
+        
+          image_read(image, FILENAME1);
+
+        glBindTexture(GL_TEXTURE_2D, names[1]);
+        glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, 
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, 
+                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+
 
                  /* Iskljucujemo aktivnu teksturu */
           glBindTexture(GL_TEXTURE_2D, 0);
@@ -141,6 +167,22 @@ int main(int argc, char** argv){
 
     glClearColor(0.6,0.6,0.8, 0);
     glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);   		
+
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+
+    glEnable(GL_COLOR_MATERIAL);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient_coeffs);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse_coeffs);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular_coeffs);
+    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,1);
+    
+
 
 
     glutMainLoop();
@@ -160,20 +202,23 @@ static void on_reshape(int width, int height){
 
 static void on_display(void){
 
+    GLfloat light_position[] = {5,y_curr,10,1};
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-    glLineWidth(3);
-    glColor3f(0,0,1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
-    gluLookAt(10,y_curr,2,0,score,2,0,1,0);
+
+   // gluLookAt(10,5,2,0,score,2,0,1,0);
+    gluLookAt(10,y_curr,2,0,score,2,0,1,0); // prava
 
     glPushMatrix();
-        glColor3f(1,1,1);
-        glRasterPos3f(0,  y_curr+5, 5);
+        LIGHT;
+        glRasterPos3f(0,  score+5, 5);
     
         char score_display[50] = "SCORE: ";
         char score_value[50];
@@ -189,52 +234,37 @@ static void on_display(void){
 
     glPushMatrix();
 
-        glScalef(1,3,1);
+        glScalef(3,20,3);
         glRotatef(270,1,0,0);
         glRotatef(90,0,0,1);
-        glTranslatef(0 ,5 , 3);
+        glTranslatef(0 ,7, 3);
   
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, names[0]);
+
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_MIRRORED_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_MIRRORED_REPEAT);
 	
 		glBegin(GL_POLYGON);
 			glTexCoord2f(0, 0);
-			glVertex3f(-10, 0, -5);
+			glVertex3f(-10, 2, -5);
 			
 			glTexCoord2f(1, 0);
-			glVertex3f(10, 0, -5);
+			glVertex3f(10, 2, -5);
 			
-			glTexCoord2f(1, 3);
-			glVertex3f(10, 0, 5);
+			glTexCoord2f(1, 6);
+			glVertex3f(10, 2, 5);
 			
-			glTexCoord2f(0, 3);
-			glVertex3f(-10, 0, 5);
+			glTexCoord2f(0, 6);
+			glVertex3f(-10, 2, 5);
 		glEnd();
 	
         glBindTexture(GL_TEXTURE_2D, 0);
     glPopMatrix();
     
-    //iscrtavanje axisa radi lakse orijentacije u prostoru
-    RED;
-    glBegin(GL_LINES);
-        glVertex3f(0,0,0);
-        glVertex3f(100,0,0);
-    glEnd();
-    AQUA;
-    glBegin(GL_LINES);
-        glVertex3f(0,0,-2);
-        glVertex3f(0,0,6);
-    glEnd();
-    LIME;
-    glBegin(GL_LINES);
-        glVertex3f(0,0,0);
-        glVertex3f(0,100,0);
-    glEnd();
+   
 
-    glColor3f(1,0,1);
-
-    //Prototip igrackog karaktera i terena
-    teren(); 
+    //Prototip igrackog karaktera
     igrac();
     prepreke();
     
@@ -242,17 +272,34 @@ static void on_display(void){
     glutSwapBuffers();
 }
 
-//funkcija koja iscrtava igraca; zasad je igrac samo mala kockica
-
 static void igrac(){
-    glColor3f(0.3,0.3,0.3);
-    glColor3f(0,0,0);
 
+// MODEL HELIKOPTERA
+    
+    LIGHT;
     glPushMatrix();
-        glTranslatef(x_curr,y_curr,z_curr);
-        glScalef(0.3,0.3,0.3);
+        glTranslatef(x_curr,y_curr+0.4,z_curr);
+        glScalef(0.8,0.005,0.8);
+        glutWireSphere(0.5,10,10);
+    glPopMatrix();
+    NEON;
+    glPushMatrix();
+        glTranslatef(x_curr,y_curr-0.1,z_curr-0.1);
+        glScalef(0.2,0.05,0.05);
         glutSolidCube(1);
     glPopMatrix();
+    glPushMatrix();
+        glTranslatef(x_curr,y_curr-0.1,z_curr+0.1);
+        glScalef(0.2,0.05,0.05);
+        glutSolidCube(1);
+    glPopMatrix();
+    AQUA;
+    glPushMatrix();
+        glTranslatef(x_curr,y_curr+0.2,z_curr);
+        glScalef(0.7,0.2,0.2);
+        glutSolidSphere(1,10,10);
+    glPopMatrix();
+
 }
 
 
@@ -274,10 +321,8 @@ static void on_keyboard(unsigned char key, int x, int y){
 
         case ' ':
             // skok
-             if(!jump_up && !jump_down) 
-                {
-                    jump_up = 1;
-
+             if(!jump_up && !jump_down){
+                jump_up = 1;
                 glutTimerFunc(TIMER_INTERVAL,skok,TIMER_ID);
                 } 
             break;    
@@ -309,16 +354,16 @@ switch(key){
 
 
 // Funkcija koja iscrtava donju ivicu terena
-static void teren(){
-    int ivica = 5;
+// static void teren(){
+//     int ivica = 5;
 
-    glColor3f(0.5,0.4,0.6);
-    glPushMatrix();
-        glTranslatef(ivica,-ivica,ivica/2);
-        glScalef(1,1,0.4); 
-        glutSolidCube(ivica*2);
-    glPopMatrix();
-}
+//     glColor3f(0.5,0.4,0.6);
+//     glPushMatrix();
+//         glTranslatef(ivica,-ivica,ivica/2);
+//         glScalef(1,1,0.4); 
+//         glutSolidCube(ivica*2);
+//     glPopMatrix();
+// }
 
 
 
@@ -341,22 +386,20 @@ static void on_timer(int value){
                 break;
             }
         }
-        //printf("ovo je dohvat:%d, a jumpd: %d, a y:%f\n",dohvat, jump_down,y_curr);
         
         if ((z_curr+0.15<prep[dohvat] || z_curr-0.15>prep[dohvat]+0.5) 
             && (jump_down==0 && jump_up==0) && dohvat!=999){
                 jump_down = 1;
-                //printf("usao0: dohvat:%d jumpd:%d jumpup:%d\n",dohvat, jump_down,jump_up);
                 glutTimerFunc(TIMER_INTERVAL,skok,TIMER_ID);
        }
     
    
-
-   glPushMatrix();
-        glTranslatef(x_curr,y_curr,z_curr);
-        glScalef(1,1,0.4);
-        glutSolidCube(10);
-    glPopMatrix();
+// ?????????
+//    glPushMatrix();
+//         glTranslatef(x_curr,y_curr,z_curr);
+//         glScalef(1,1,0.4);
+//         glutSolidCube(100);
+//     glPopMatrix();
 
    
     glutPostRedisplay();
@@ -376,27 +419,36 @@ static void popuni(){
 
 
 static void prepreke(){
-    glLineWidth(4);
+    glLineWidth(20);
     RED;
-    
+    glDisable(GL_LIGHTING);
+
     // Pocetna linija
     glBegin(GL_LINES);
         glVertex3f(4,y_prep[2],prep[2]-50);
         glVertex3f(4,y_prep[2],prep[2]+30);
     glEnd();
     
+    glLineWidth(4);
     for (int i=3;i<1000;i++){
         if(i==100)
             AQUA;
         if(i==200)
             CITY;
-    glBegin(GL_LINES);
-        glVertex3f(4,y_prep[i],prep[i]);
-        glVertex3f(4,y_prep[i],prep[i]+0.5);
-    glEnd();}
+
+    
+        glBegin(GL_LINES);
+            glVertex3f(4,y_prep[i],prep[i]);
+            glVertex3f(4,y_prep[i],prep[i]+0.5);
+        glEnd();
+        }
+
+    glEnable(GL_LIGHTING);
 }
 
+
 static void skok(int value){
+
     if(jump_up == 1){
         dy += 0.004;
         y_curr += dy;
@@ -426,16 +478,13 @@ static void skok(int value){
         if ((z_curr+0.15>prep[dohvat] && z_curr-0.15<prep[dohvat]+0.5)&& y_curr<y_prep[dohvat]+0.15){
             jump_down = 0;
             dy=0.005;
-            //printf("usao1 a dohvat:%d, jumpd:%d, jumpup:%d\n",dohvat,jump_down,jump_up);  
         }
-        else if(y_curr-0.16<y_prep[dohvat] && dohvat>2){
-            //printf("usao2 a dohvat:%d, jumpd:%d, jumpup:%f\n",dohvat,jump_down,y_curr);               
+        else if(y_curr-0.16<y_prep[dohvat] && dohvat>2){             
             dohvat--;
         }
         else if (y_curr-0.16<=y_prep[2]){
             jump_down = 0;
-            dy=0.005;
-            //printf("usao3 a dohvat:%d, jumpd:%d, jumpup:%d\n",dohvat,jump_down,jump_up);  
+            dy=0.005;  
             y_curr = y_prep[2]+0.15;
         }
 
@@ -445,12 +494,12 @@ static void skok(int value){
         exit(EXIT_FAILURE);
     }
 
-    glPushMatrix();
-        glTranslatef(x_curr,y_curr,z_curr);
-        glScalef(1,1,0.4);
-        glutSolidCube(10);
-    glPopMatrix();
-    glutPostRedisplay();
+    // glPushMatrix();
+    //     glTranslatef(x_curr,y_curr,z_curr);
+    //     glScalef(1,1,0.4);
+    //     glutSolidCube(10);
+    // glPopMatrix();
+    // glutPostRedisplay();
 
     
 
