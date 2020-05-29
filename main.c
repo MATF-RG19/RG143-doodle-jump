@@ -10,9 +10,10 @@
 #define FILENAME0 "noc.bmp"
 #define FILENAME1 "tekstura.bmp"
 #define FILENAME2 "neon.bmp"
+#define FILENAME3 "end.bmp"
 
 // Identifikatori tekstura
-static GLuint names[3];
+static GLuint names[4];
 
 
 // Makroi za boje
@@ -55,7 +56,6 @@ static int jump_down = 0;
 static int niz[2] = {0,0};
 
 // promenljive koje definisu prepreke
-// TODO - dodati jos prepreka
 static float prep[1000];
 static float y_prep[1000];
 
@@ -72,6 +72,7 @@ static void on_display(void);
 static void on_reshape(int height, int width);
 static void skok(int value);
 static void keyboard_up(unsigned char key, int x, int y);
+static void end();
 
 // funkcije koje iscrtavaju igraca/teren/prepreke
 static void igrac();
@@ -104,24 +105,23 @@ int main(int argc, char** argv){
     glutInitWindowPosition(100, 100);
     glutCreateWindow("Doodle jump");
 
-       /*Objekat koji predstavlja teskturu ucitanu iz fajla*/
+       // Objekat koji predstavlja teskturu ucitanu iz fajla
          Image * image;
 
-         /*Ukljucuju se teksture.*/
+         // Ukljucuju se teksture.
          glEnable(GL_TEXTURE_2D);
 
          glTexEnvf(GL_TEXTURE_ENV,
               GL_TEXTURE_ENV_MODE,
               GL_REPLACE);
 
-          /*
-           *Inicijalizuje se objekat koji ce sadrzati teksture ucitane iz fajla*/
+          //Inicijalizuje se objekat koji ce sadrzati teksture ucitane iz fajla
          image = image_init(0, 0);
 
-         /*Generisu se identifikatori tekstura*/
+         // Generisu se identifikatori tekstura
          glGenTextures(4, names);
 
-         /* Kreira se prva tekstura. */
+         // Kreira se prva tekstura. 
          image_read(image, FILENAME0);
 
         glBindTexture(GL_TEXTURE_2D, names[0]);
@@ -167,12 +167,27 @@ int main(int argc, char** argv){
          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
                  image->width, image->height, 0,
                  GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+        
+        image_read(image, FILENAME3);
+
+        glBindTexture(GL_TEXTURE_2D, names[3]);
+        glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, 
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, 
+                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
 
 
-                 /* Iskljucujemo aktivnu teksturu */
+                 // Iskljucujemo aktivnu teksturu 
           glBindTexture(GL_TEXTURE_2D, 0);
 
-         /* Unistava se objekat za citanje tekstura iz fajla. */
+         // Unistava se objekat za citanje tekstura iz fajla. 
           image_done(image);
 
 
@@ -219,7 +234,7 @@ static void on_reshape(int width, int height){
 
 static void on_display(void){
 
-    GLfloat light_position[] = {5,y_curr,10,1};
+    GLfloat light_position[] = {5,score,10,1};
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -233,6 +248,7 @@ static void on_display(void){
    // gluLookAt(10,5,2,0,score,2,0,1,0);
     gluLookAt(10,y_curr,2,0,score,2,0,1,0); // prava
 
+    glDisable(GL_LIGHTING);
     glPushMatrix();
         LIGHT;
         glRasterPos3f(0,  score+5, 5);
@@ -248,6 +264,7 @@ static void on_display(void){
             glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, score_display[i]);
         }
     glPopMatrix();
+    glEnable(GL_LIGHTING);
 
     glPushMatrix();
 
@@ -292,11 +309,12 @@ static void igrac(){
 
 // MODEL HELIKOPTERA
     
-    LIGHT;
+    RED;
     glPushMatrix();
+        glRotatef(0.5,0,1,0);
         glTranslatef(x_curr,y_curr+0.4,z_curr);
         glScalef(0.8,0.005,0.8);
-        glutWireSphere(0.5,10,10);
+        glutWireSphere(0.5,50,50);
     glPopMatrix();
     NEON;
     glPushMatrix();
@@ -340,13 +358,23 @@ static void on_keyboard(unsigned char key, int x, int y){
             // skok
             if (!started){
                 glutDisplayFunc(on_display);
+                glutTimerFunc(TIMER_INTERVAL,on_timer,TIMER_ID);
                 started = 1;
             }
              if(!jump_up && !jump_down){
                 jump_up = 1;
                 glutTimerFunc(TIMER_INTERVAL,skok,TIMER_ID);
                 } 
-            break;    
+            break;
+        case 'r':
+            score = 0;
+            started = 0;
+            x_curr =  4;
+            z_curr = 1;
+            y_curr = 1;
+            glutDisplayFunc(on_display);
+            glutPostRedisplay();
+            break;   
 
         default:
             break;
@@ -374,7 +402,7 @@ switch(key){
 }
 
 
-
+// funckija pomeranja
 
 static void on_timer(int value){
 
@@ -403,12 +431,6 @@ static void on_timer(int value){
        }
     
    
-// ?????????
-//    glPushMatrix();
-//         glTranslatef(x_curr,y_curr,z_curr);
-//         glScalef(1,1,0.4);
-//         glutSolidCube(100);
-//     glPopMatrix();
 
    
     glutPostRedisplay();
@@ -515,9 +537,8 @@ static void skok(int value){
 
     }
 
-    if (score>y_curr+6){
-        // TODO Exit
-        exit(EXIT_FAILURE);
+    if (score>y_curr+5){
+        glutDisplayFunc(end);
     }
 
     // glPushMatrix();
@@ -536,6 +557,7 @@ static void skok(int value){
 
 } 
 
+// funkcija koja vodi na pocetni ekran
 static void start(){
 
 
@@ -567,6 +589,64 @@ static void start(){
 		glEnd();
         
 	glDisable(GL_TEXTURE_2D);
+    
+
+    glutSwapBuffers();
+}
+
+
+// funkcija koja izlazi iz igre(game over ekran)
+static void end(){
+
+
+    started = 0;
+
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(0, 4, 0,
+              0, 0, 0,
+              1, 0, 0);
+    
+    glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, names[3]);
+	
+		glBegin(GL_POLYGON);
+			glTexCoord2f(0, 0);
+			glVertex3f(-2, 0, -2);
+			
+			glTexCoord2f(0, 1);
+			glVertex3f(2, 0, -2);
+			
+			glTexCoord2f(1, 1);
+			glVertex3f(2, 0, 2);
+			
+			glTexCoord2f(1, 0);
+			glVertex3f(-2, 0, 2);
+		glEnd();
+        
+	glDisable(GL_TEXTURE_2D);
+
+    glDisable(GL_LIGHTING);
+    glPushMatrix();
+        NEON;
+        glRasterPos3f(-0.08, 0.2, -0.25);
+        char score_display[50] = " ";
+        char score_value[50];
+        
+        sprintf(score_value, " %.f ", score*10);
+        strcat(score_display, score_value);
+
+        int len = (int)strlen(score_display);
+        int i;
+        for ( i = 0; i < len; i++){
+            glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, score_display[i]);
+        }
+    glPopMatrix();
+    glEnable(GL_LIGHTING);
     
 
     glutSwapBuffers();
