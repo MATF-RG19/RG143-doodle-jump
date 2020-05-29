@@ -9,23 +9,22 @@
 // Imena fajlova sa teksturama
 #define FILENAME0 "noc.bmp"
 #define FILENAME1 "tekstura.bmp"
+#define FILENAME2 "neon.bmp"
 
 // Identifikatori tekstura
-static GLuint names[2];
+static GLuint names[3];
 
 
 // Makroi za boje
 
 #define NEON (glColor3f(0.5,0.07,1))
 #define RED (glColor3f(1, 0, 0))
-#define CITY (glColor3f(1, 0, 1))
-#define YELLOW (glColor3f(1, 1, 0))
-#define LIME (glColor3f(0, 1 , 0))
-#define AQUA (glColor3f(0, 1 , 1))
-#define PINK (glColor3f(1, 0.08 , 0.588))
-#define LIGHT (glColor3f(1, 0.9 , 1))
-#define SAND (glColor3f(0.97, 0.55 , 0.38))
-#define BLUE (glColor3f(0, 0 , 0.82))
+#define GRAY (glColor3f(0.5, 0.5, 0.5))
+#define LIME (glColor3f(0.1, 1 , 0))
+#define AQUA (glColor3f(0, 0.8 , 1))
+#define LIGHT (glColor3f(1, 1 , 1))
+#define SAND (glColor3f(0.97, 0.70 , 0.50))
+#define BLUE (glColor3f(0, 0 , 0.90))
 
 // Makroi za rad funkcija
 
@@ -42,6 +41,7 @@ static GLuint names[2];
 // Globalne promenljive
 
 static time_t t;
+static int started = 0;
 
 // Promenljiva koja meri skor
 static float score = 0;
@@ -64,6 +64,8 @@ static int dohvat = 998;
 
 // funkcije za rad sa GLUT bibliotekom
 
+
+static void start();
 static void on_keyboard(unsigned char key,int x,int y);
 static void on_timer(int value);
 static void on_display(void);
@@ -150,6 +152,21 @@ int main(int argc, char** argv){
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
                  image->width, image->height, 0,
                  GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+        
+        image_read(image, FILENAME2);
+
+        glBindTexture(GL_TEXTURE_2D, names[2]);
+         glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+         glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+         glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
 
 
                  /* Iskljucujemo aktivnu teksturu */
@@ -159,7 +176,7 @@ int main(int argc, char** argv){
           image_done(image);
 
 
-    glutDisplayFunc(on_display);
+    glutDisplayFunc(start);
     glutKeyboardFunc(on_keyboard);
     glutReshapeFunc(on_reshape);
     glutKeyboardUpFunc(keyboard_up);
@@ -267,7 +284,6 @@ static void on_display(void){
     //Prototip igrackog karaktera
     igrac();
     prepreke();
-    
 
     glutSwapBuffers();
 }
@@ -302,6 +318,7 @@ static void igrac(){
 
 }
 
+// Funkcije sa tastature 
 
 static void on_keyboard(unsigned char key, int x, int y){
     switch(key){
@@ -321,6 +338,10 @@ static void on_keyboard(unsigned char key, int x, int y){
 
         case ' ':
             // skok
+            if (!started){
+                glutDisplayFunc(on_display);
+                started = 1;
+            }
              if(!jump_up && !jump_down){
                 jump_up = 1;
                 glutTimerFunc(TIMER_INTERVAL,skok,TIMER_ID);
@@ -352,18 +373,6 @@ switch(key){
 }
 }
 
-
-// Funkcija koja iscrtava donju ivicu terena
-// static void teren(){
-//     int ivica = 5;
-
-//     glColor3f(0.5,0.4,0.6);
-//     glPushMatrix();
-//         glTranslatef(ivica,-ivica,ivica/2);
-//         glScalef(1,1,0.4); 
-//         glutSolidCube(ivica*2);
-//     glPopMatrix();
-// }
 
 
 
@@ -406,6 +415,9 @@ static void on_timer(int value){
 
 }
 
+
+// Stvaranje nasumicnih nizova za prepreke
+
 static void popuni(){
     srand((unsigned) time(&t));
     
@@ -434,7 +446,20 @@ static void prepreke(){
         if(i==100)
             AQUA;
         if(i==200)
-            CITY;
+            GRAY;
+        if(i==300)
+            NEON;
+        if(i==400)
+            LIGHT;
+        if(i==500)
+            RED;
+        if(i==600)
+            LIME;
+        if(i==700)
+            SAND;
+        if(i==800)
+            BLUE;    
+        
 
     
         glBegin(GL_LINES);
@@ -491,6 +516,7 @@ static void skok(int value){
     }
 
     if (score>y_curr+6){
+        // TODO Exit
         exit(EXIT_FAILURE);
     }
 
@@ -509,3 +535,39 @@ static void skok(int value){
     }
 
 } 
+
+static void start(){
+
+
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(0, 4, 0,
+              0, 0, 0,
+              1, 0, 0);
+    
+    glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, names[2]);
+	
+		glBegin(GL_POLYGON);
+			glTexCoord2f(0, 0);
+			glVertex3f(-2, 0, -2);
+			
+			glTexCoord2f(0, 1);
+			glVertex3f(2, 0, -2);
+			
+			glTexCoord2f(1, 1);
+			glVertex3f(2, 0, 2);
+			
+			glTexCoord2f(1, 0);
+			glVertex3f(-2, 0, 2);
+		glEnd();
+        
+	glDisable(GL_TEXTURE_2D);
+    
+
+    glutSwapBuffers();
+}
