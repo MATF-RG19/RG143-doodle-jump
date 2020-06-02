@@ -4,6 +4,7 @@
 #include <time.h>
 #include <string.h>
 #include "image.h"
+#include<math.h>
 
 
 // Imena fajlova sa teksturama
@@ -37,7 +38,6 @@ static GLuint names[4];
 #define gore 2
 #define desno 3
 #define dole 4 
-#define pomeraj 0.03
 
 // Globalne promenljive
 
@@ -55,12 +55,15 @@ static int jump_down = 0;
 // Niz koji definise kretanje levo/desno
 static int niz[2] = {0,0};
 
+static float pomeraj = 0.03;
+
 // promenljive koje definisu prepreke
 static float prep[1000];
 static float y_prep[1000];
 
 // Promenljiva koja definise maksimalni dohvat pri skoku
 static int dohvat = 998;
+static int rotate = 0;
 
 // funkcije za rad sa GLUT bibliotekom
 
@@ -308,29 +311,36 @@ static void on_display(void){
 static void igrac(){
 
 // MODEL HELIKOPTERA
+    rotate+=150;
+    // if(rotate>360)
+    //     rotate = 0;
+    int rotacija =rotate * 360 / (365*24);
     
-    RED;
+    AQUA;
     glPushMatrix();
-        glRotatef(0.5,0,1,0);
         glTranslatef(x_curr,y_curr+0.4,z_curr);
+        glRotatef(rotacija,0,1,0);
         glScalef(0.8,0.005,0.8);
         glutWireSphere(0.5,50,50);
     glPopMatrix();
     NEON;
     glPushMatrix();
         glTranslatef(x_curr,y_curr-0.1,z_curr-0.1);
+        glRotatef(rotacija,0,1,0);
         glScalef(0.2,0.05,0.05);
         glutSolidCube(1);
     glPopMatrix();
     glPushMatrix();
         glTranslatef(x_curr,y_curr-0.1,z_curr+0.1);
+        glRotatef(rotacija,0,1,0);
         glScalef(0.2,0.05,0.05);
         glutSolidCube(1);
     glPopMatrix();
     AQUA;
     glPushMatrix();
         glTranslatef(x_curr,y_curr+0.2,z_curr);
-        glScalef(0.7,0.2,0.2);
+        glRotatef(rotacija,0,1,0);
+        glScalef(0.6,0.2,0.2);
         glutSolidSphere(1,10,10);
     glPopMatrix();
 
@@ -370,7 +380,7 @@ static void on_keyboard(unsigned char key, int x, int y){
             score = 0;
             started = 0;
             x_curr =  4;
-            z_curr = 1;
+            z_curr = 2;
             y_curr = 1;
             glutDisplayFunc(on_display);
             glutPostRedisplay();
@@ -409,11 +419,26 @@ static void on_timer(int value){
     if(value!=TIMER_ID){
         return;
     }    
+
+    if (dohvat>100 && dohvat<200){
+        pomeraj = 0.06;
+    }
+    // else if(dohvat>200 && dohvat<300){
+    //     pomeraj = 0;
+    // }
+    else{
+        pomeraj = 0.03;
+    }
+
+    printf("%f %d\n",pomeraj, dohvat);
+
     glutPostRedisplay();
     if (niz[0])
-        z_curr+=pomeraj;
+        if(z_curr<=4)
+            z_curr+=pomeraj;
     if (niz[1])
-        z_curr-=pomeraj;
+        if(z_curr>=0)
+            z_curr-=pomeraj;
 
 
     if(jump_down)
