@@ -537,8 +537,10 @@ static void skok(int value){
         dy += 0.004;
         y_curr += dy;
 
-        if(dohvat >300 && dohvat <400)
+        if(dohvat >= 300 && dohvat <401)
             jump_limit = 0.2;
+        else if(dohvat >= 400 && dohvat <501)
+            jump_limit = 0.7;
 
         if (dy>=jump_limit){
             jump_up = 0;
