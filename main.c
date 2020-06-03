@@ -8,10 +8,10 @@
 
 
 // Imena fajlova sa teksturama
-#define FILENAME0 "noc.bmp"
-#define FILENAME1 "tekstura.bmp"
-#define FILENAME2 "neon.bmp"
-#define FILENAME3 "end.bmp"
+#define FILENAME0 "./teksture/noc.bmp"
+#define FILENAME1 "./teksture/tekstura.bmp"
+#define FILENAME2 "./teksture/neon.bmp"
+#define FILENAME3 "./teksture/end.bmp"
 
 // Identifikatori tekstura
 static GLuint names[4];
@@ -33,7 +33,6 @@ static GLuint names[4];
 #define TIMER_ID 0
 #define TIMER_INTERVAL 20
 #define velicina 0.1
-#define jump_limit 0.2
 #define levo 1
 #define gore 2
 #define desno 3
@@ -420,12 +419,12 @@ static void on_timer(int value){
         return;
     }    
 
-    if (dohvat>100 && dohvat<200){
+    if (dohvat>100 && dohvat<200 && !jump_up && !jump_down){
         pomeraj = 0.06;
     }
-    // else if(dohvat>200 && dohvat<300){
-    //     pomeraj = 0;
-    // }
+    else if(dohvat>200 && dohvat<300 && !jump_up && !jump_down){
+        pomeraj = 0;
+    }
     else{
         pomeraj = 0.03;
     }
@@ -448,8 +447,13 @@ static void on_timer(int value){
                 break;
             }
         }
+
+        float duzina = 0.5;
+        if(dohvat>=100 && dohvat<201)
+                duzina = 1;
+        else    duzina = 0.5;
         
-        if ((z_curr+0.15<prep[dohvat] || z_curr-0.15>prep[dohvat]+0.5) 
+        if ((z_curr+0.15<prep[dohvat] || z_curr-0.15>prep[dohvat]+duzina) 
             && (jump_down==0 && jump_up==0) && dohvat!=999){
                 jump_down = 1;
                 glutTimerFunc(TIMER_INTERVAL,skok,TIMER_ID);
@@ -471,7 +475,7 @@ static void popuni(){
     for (int i=0;i<1000;i++){
         float x = (float)rand()/(float)(RAND_MAX/4);
             prep[i]=x;
-            y_prep[i]=i/4.0;
+            y_prep[i]=i/3.0;
             }
 };
 
@@ -482,6 +486,8 @@ static void prepreke(){
     RED;
     glDisable(GL_LIGHTING);
 
+    float duzina = 0.5;
+
     // Pocetna linija
     glBegin(GL_LINES);
         glVertex3f(4,y_prep[2],prep[2]-50);
@@ -490,10 +496,14 @@ static void prepreke(){
     
     glLineWidth(4);
     for (int i=3;i<1000;i++){
-        if(i==100)
+        if(i==100){
             AQUA;
-        if(i==200)
+            duzina = 1;
+        }
+        if(i==200){
+            duzina = 0.5;
             GRAY;
+        }
         if(i==300)
             NEON;
         if(i==400)
@@ -511,7 +521,7 @@ static void prepreke(){
     
         glBegin(GL_LINES);
             glVertex3f(4,y_prep[i],prep[i]);
-            glVertex3f(4,y_prep[i],prep[i]+0.5);
+            glVertex3f(4,y_prep[i],prep[i]+duzina);
         glEnd();
         }
 
@@ -521,11 +531,16 @@ static void prepreke(){
 
 static void skok(int value){
 
+    float jump_limit = 0.1;
+
     if(jump_up == 1){
         dy += 0.004;
         y_curr += dy;
 
-        if (dy>=0.1){
+        if(dohvat >300 && dohvat <400)
+            jump_limit = 0.2;
+
+        if (dy>=jump_limit){
             jump_up = 0;
             dy = 0.005;
             jump_down = 1;
@@ -534,12 +549,10 @@ static void skok(int value){
         if(y_curr>score)
             score = y_curr;
     }
-
-    // for(int i=48;i>=0;i--){
-    //         if (y_curr-0.15>=y_prep[i] && y_curr+0.15<y_prep[i+1]){
-    //             dohvat = i;
-    //             break;}
-    // }
+        float duzina=0.5;
+    if(dohvat>=100 && dohvat<201)
+        duzina = 1;
+    else duzina = 0.5;
     
     if (jump_down == 1){
         if (dy<0.1)
@@ -547,7 +560,7 @@ static void skok(int value){
 
         y_curr -= dy;
         
-        if ((z_curr+0.15>prep[dohvat] && z_curr-0.15<prep[dohvat]+0.5)&& y_curr<y_prep[dohvat]+0.15){
+        if ((z_curr+0.15>prep[dohvat] && z_curr-0.15<prep[dohvat]+duzina)&& y_curr<y_prep[dohvat]+0.15){
             jump_down = 0;
             dy=0.005;
         }
