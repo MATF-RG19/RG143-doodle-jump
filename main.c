@@ -59,6 +59,7 @@ static float pomeraj = 0.03;
 // promenljive koje definisu prepreke
 static float prep[1000];
 static float y_prep[1000];
+static int randx[1000];
 
 // Promenljiva koja definise maksimalni dohvat pri skoku
 static int dohvat = 998;
@@ -419,17 +420,16 @@ static void on_timer(int value){
         return;
     }    
 
-    if (dohvat>100 && dohvat<200 && !jump_up && !jump_down){
-        pomeraj = 0.06;
+    if (randx[dohvat]==0 && !jump_up && !jump_down){
+        pomeraj = 0.08;
     }
-    else if(dohvat>200 && dohvat<300 && !jump_up && !jump_down){
+    else if(randx[dohvat]==1 && !jump_up && !jump_down){
         pomeraj = 0;
     }
     else{
         pomeraj = 0.03;
     }
 
-    printf("%f %d\n",pomeraj, dohvat);
 
     glutPostRedisplay();
     if (niz[0])
@@ -449,9 +449,12 @@ static void on_timer(int value){
         }
 
         float duzina = 0.5;
-        if(dohvat>=100 && dohvat<201)
+        if(randx[dohvat]==0)
                 duzina = 1;
         else    duzina = 0.5;
+
+
+    printf("%f %d %f\n",pomeraj, dohvat, duzina);
         
         if ((z_curr+0.15<prep[dohvat] || z_curr-0.15>prep[dohvat]+duzina) 
             && (jump_down==0 && jump_up==0) && dohvat!=999){
@@ -476,6 +479,7 @@ static void popuni(){
         float x = (float)rand()/(float)(RAND_MAX/4);
             prep[i]=x;
             y_prep[i]=i/3.0;
+            randx[i]= rand()%5;
             }
 };
 
@@ -496,26 +500,32 @@ static void prepreke(){
     
     glLineWidth(4);
     for (int i=3;i<1000;i++){
-        if(i==100){
+        if(randx[i]==0){
             AQUA;
             duzina = 1;
         }
-        if(i==200){
+        if(randx[i]==1){
             duzina = 0.5;
             GRAY;
         }
-        if(i==300)
+        if(randx[i]==2){
+            duzina = 0.5;
             NEON;
-        if(i==400)
+        }
+        if(randx[i]==3){
+            duzina = 0.5;
             LIGHT;
-        if(i==500)
+        }
+        if(randx[i]==4){
+            duzina = 0.5;
             RED;
-        if(i==600)
-            LIME;
-        if(i==700)
-            SAND;
-        if(i==800)
-            BLUE;    
+        }
+        // if(i==600)
+        //     LIME;
+        // if(i==700)
+        //     SAND;
+        // if(i==800)
+        //     BLUE;    
         
 
     
@@ -537,10 +547,8 @@ static void skok(int value){
         dy += 0.004;
         y_curr += dy;
 
-        if(dohvat >= 300 && dohvat <401)
-            jump_limit = 0.2;
-        else if(dohvat >= 400 && dohvat <501)
-            jump_limit = 0.7;
+        if(randx[dohvat]==4)
+            jump_limit = 0.15;
 
         if (dy>=jump_limit){
             jump_up = 0;
@@ -552,7 +560,7 @@ static void skok(int value){
             score = y_curr;
     }
         float duzina=0.5;
-    if(dohvat>=100 && dohvat<201)
+    if(randx[dohvat]==0)
         duzina = 1;
     else duzina = 0.5;
     
