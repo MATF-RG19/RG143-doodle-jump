@@ -311,9 +311,10 @@ static void on_display(void){
 static void igrac(){
 
 // MODEL HELIKOPTERA
-    rotate+=150;
-    // if(rotate>360)
-    //     rotate = 0;
+    if(niz[0])
+        rotate+=150;
+    else if(niz[1])
+        rotate-=150;
     int rotacija =rotate * 360 / (365*24);
     
     AQUA;
