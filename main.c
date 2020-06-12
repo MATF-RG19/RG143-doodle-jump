@@ -412,7 +412,7 @@ switch(key){
 }
 
 
-// funckija pomeranja
+// funkcija pomeranja
 
 static void on_timer(int value){
 
@@ -420,10 +420,10 @@ static void on_timer(int value){
         return;
     }    
 
-    if (randx[dohvat]==0 && !jump_up && !jump_down){
+    if ((randx[dohvat]==0 || randx[dohvat]==5) && !jump_up && !jump_down){
         pomeraj = 0.08;
     }
-    else if(randx[dohvat]==1 && !jump_up && !jump_down){
+    else if((randx[dohvat]==1 || randx[dohvat]==6) && !jump_up && !jump_down){
         pomeraj = 0;
     }
     else{
@@ -449,12 +449,12 @@ static void on_timer(int value){
         }
 
         float duzina = 0.5;
-        if(randx[dohvat]==0)
+        if(randx[dohvat]==0 || randx[dohvat]==5)
                 duzina = 1;
         else    duzina = 0.5;
 
 
-    printf("%f %d %f\n",pomeraj, dohvat, duzina);
+    printf("%f %d %f %d\n",pomeraj, dohvat, duzina, randx[dohvat]);
         
         if ((z_curr+0.15<prep[dohvat] || z_curr-0.15>prep[dohvat]+duzina) 
             && (jump_down==0 && jump_up==0) && dohvat!=999){
@@ -479,7 +479,7 @@ static void popuni(){
         float x = (float)rand()/(float)(RAND_MAX/4);
             prep[i]=x;
             y_prep[i]=i/3.0;
-            randx[i]= rand()%5;
+            randx[i]= rand()%9;
             }
 };
 
@@ -500,15 +500,15 @@ static void prepreke(){
     
     glLineWidth(4);
     for (int i=3;i<1000;i++){
-        if(randx[i]==0){
+        if(randx[i]==0 || randx[i]==5){
             AQUA;
             duzina = 1;
         }
-        if(randx[i]==1){
-            duzina = 0.5;
+        if(randx[i]==1 || randx[i]==6){
+            duzina = 0.5; 
             GRAY;
         }
-        if(randx[i]==2){
+        if(randx[i]==2 || randx[i]==7){
             duzina = 0.5;
             NEON;
         }
@@ -516,7 +516,7 @@ static void prepreke(){
             duzina = 0.5;
             LIGHT;
         }
-        if(randx[i]==4){
+        if(randx[i]==4 || randx[i]==8){
             duzina = 0.5;
             RED;
         }
@@ -547,8 +547,13 @@ static void skok(int value){
         dy += 0.004;
         y_curr += dy;
 
-        if(randx[dohvat]==4)
+        
+
+        if(randx[dohvat]==4 || randx[dohvat]==8)
             jump_limit = 0.15;
+        if(randx[dohvat]==3)
+            jump_limit = 0;
+        
 
         if (dy>=jump_limit){
             jump_up = 0;
@@ -560,7 +565,7 @@ static void skok(int value){
             score = y_curr;
     }
         float duzina=0.5;
-    if(randx[dohvat]==0)
+    if(randx[dohvat]==0 || randx[dohvat]==5)
         duzina = 1;
     else duzina = 0.5;
     
