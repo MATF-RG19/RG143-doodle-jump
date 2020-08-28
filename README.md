@@ -1,5 +1,5 @@
 # RG143-doodle-jump
-Kopija popularne doodle jump igre sa pocetka decenije.
+A copy of the popular game made in C language.
 
 # Instalacija
 
